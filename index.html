@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Chinese Room · Interactive Study Guide</title><meta name="description" content="A simple interactive lesson on the Chinese Room, linguistic frequency, semantic understanding, opposing sources, and eight knowledge checks."><style>
+/* Shared styles for CMPE249 interactive lessons. Every lecture links this file. */
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ec;
+  --text: #1d1d1f;
+  --muted: #5f6368;
+  --border: #e2ded6;
+  --accent: #2f5bd3;
+  --accent-soft: #e6ecfb;
+  --on-accent: #ffffff;
+  --good: #1f7a4d;
+  --good-soft: #e3f3ea;
+  --bad: #b3261e;
+  --bad-soft: #fbe7e5;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --s1: #2f5bd3; --s2: #0e8a7e; --s3: #7a4fd0; --s4: #c2410c; --s5: #a16207;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15161a; --surface: #1d1f24; --surface-2: #25272d; --text: #e9e9ec; --muted: #a0a3ab;
+    --border: #34363d; --accent: #8aa8ff; --accent-soft: #232c45; --on-accent: #10131a; --good: #6fd3a0; --good-soft: #1a3328;
+    --bad: #ff8a80; --bad-soft: #3a1f1d; --warn: #f0c060; --warn-soft: #3a3020;
+    --s1: #8aa8ff; --s2: #4fd1c1; --s3: #b69cff; --s4: #ff9b6a; --s5: #e9c46a;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15161a; --surface: #1d1f24; --surface-2: #25272d; --text: #e9e9ec; --muted: #a0a3ab;
+  --border: #34363d; --accent: #8aa8ff; --accent-soft: #232c45; --on-accent: #10131a; --good: #6fd3a0; --good-soft: #1a3328;
+  --bad: #ff8a80; --bad-soft: #3a1f1d; --warn: #f0c060; --warn-soft: #3a3020;
+  --s1: #8aa8ff; --s2: #4fd1c1; --s3: #b69cff; --s4: #ff9b6a; --s5: #e9c46a;
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 17px/1.65 var(--font); -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+code, kbd { font-family: var(--mono); font-size: .9em; background: var(--surface-2); padding: .1em .35em; border-radius: 4px; }
+h1, h2, h3, h4 { line-height: 1.25; text-wrap: balance; }
+h1 { font-size: 2.1rem; margin: .2em 0 .3em; letter-spacing: -.01em; }
+h2 { font-size: 1.55rem; margin: 0 0 .4em; letter-spacing: -.005em; }
+h3 { font-size: 1.15rem; margin: 1.6em 0 .4em; }
+p { margin: .6em 0; }
+ul, ol { padding-left: 1.3em; }
+li { margin: .25em 0; }
+
+/* ---------- layout ---------- */
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding: 0 24px; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 0; font-size: .9rem; }
+.sidebar .course { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.sidebar .lec { font-weight: 700; margin: .2em 0 1em; font-size: 1rem; }
+.toc { list-style: none; padding: 0; margin: 0; }
+.toc li { margin: 0; }
+.toc a { display: flex; gap: 8px; align-items: baseline; padding: 5px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.toc a:hover { background: var(--surface-2); color: var(--text); }
+.toc a.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+.toc .tick { width: 1em; flex: none; color: var(--good); font-weight: 700; }
+.progress { margin: 0 0 18px; }
+.progress .bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.progress .fill { height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.progress .label { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+.side-tools { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px; }
+main { padding: 32px 0 120px; min-width: 0; }
+.menu-btn { display: none; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 0 16px; gap: 0; }
+  .sidebar { position: fixed; inset: 0 30% 0 0; z-index: 50; background: var(--surface); padding: 20px 16px; transform: translateX(-105%); transition: transform .2s; border-right: 1px solid var(--border); }
+  .sidebar.open { transform: none; }
+  .menu-btn { display: inline-flex; position: fixed; bottom: 16px; right: 16px; z-index: 60; }
+  body { font-size: 16px; }
+  h1 { font-size: 1.7rem; }
+}
+
+/* ---------- sections ---------- */
+.hero { padding: 8px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.hero .kicker { color: var(--accent); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+.hero .lede { font-size: 1.12rem; color: var(--muted); max-width: 46em; }
+section.lesson { padding: 40px 0 8px; border-bottom: 1px solid var(--border); }
+section.lesson:last-of-type { border-bottom: 0; }
+.sec-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.slide-ref { font-size: .75rem; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+.goal { color: var(--muted); font-style: italic; margin-top: 0; }
+.prose { max-width: 46em; }
+
+/* ---------- callouts ---------- */
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; margin: 1.2em 0; }
+.callout > :first-child { margin-top: 0; } .callout > :last-child { margin-bottom: 0; }
+.callout .t { font-weight: 700; display: block; margin-bottom: 2px; }
+.callout.plain { border-color: var(--good); background: var(--good-soft); }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.slop { border-color: var(--bad); background: var(--bad-soft); }
+.tldr { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
+.tldr ol { margin: .4em 0 0; }
+
+/* ---------- generic components ---------- */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin: 1em 0; }
+.grid .card h4 { margin: 0 0 .3em; }
+.grid .card p { margin: 0; font-size: .95rem; color: var(--muted); }
+.btn { font: inherit; font-size: .9rem; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 6px 12px; border-radius: 8px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: .8em 0; }
+.widget { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin: 1.4em 0; box-shadow: var(--shadow); }
+.widget > .w-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 700; margin: 0 0 .6em; }
+.widget .hint { font-size: .88rem; color: var(--muted); margin-top: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 1em 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+
+/* think-first reveals */
+details.reveal { border: 1px dashed var(--border); border-radius: var(--radius); padding: 10px 14px; margin: 1em 0; background: var(--surface); }
+details.reveal summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+details.reveal[open] summary { margin-bottom: .4em; }
+
+/* glossary terms */
+.term { border-bottom: 1.5px dotted var(--accent); cursor: help; }
+.term:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+#gloss-pop { position: absolute; z-index: 100; max-width: 340px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: .9rem; line-height: 1.5; box-shadow: 0 6px 24px rgba(0,0,0,.18); display: none; }
+#gloss-pop b { display: block; margin-bottom: 2px; }
+.glossary-list dt { font-weight: 700; margin-top: .8em; }
+.glossary-list dd { margin: .1em 0 0; color: var(--muted); }
+.glossary-filter { width: 100%; max-width: 360px; font: inherit; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+
+/* ---------- quiz ---------- */
+.quiz { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin: 1.4em 0; box-shadow: var(--shadow); }
+.quiz .q-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--s3); font-weight: 700; }
+.quiz .q { font-weight: 600; margin: .3em 0 .7em; }
+.quiz .opts { display: grid; gap: 8px; }
+.quiz .opt { text-align: left; font: inherit; font-size: .97rem; cursor: pointer; padding: 10px 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.quiz .opt:hover:not(:disabled) { border-color: var(--accent); }
+.quiz .opt:disabled { cursor: default; }
+.quiz .opt.right { border-color: var(--good); background: var(--good-soft); }
+.quiz .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.quiz .why { display: none; margin-top: 10px; padding: 10px 14px; border-radius: 9px; background: var(--surface-2); font-size: .95rem; }
+.quiz .why.show { display: block; }
+.quiz .retry { margin-top: 10px; }
+
+/* checklist */
+.checklist { list-style: none; padding: 0; }
+.checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.checklist input { margin-top: .35em; width: 18px; height: 18px; accent-color: var(--good); flex: none; }
+.checklist label { cursor: pointer; }
+
+/* flip cards */
+.flips { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.flip { font: inherit; text-align: left; cursor: pointer; min-height: 120px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); padding: 14px; box-shadow: var(--shadow); }
+.flip .front { font-weight: 700; font-size: 1.05rem; }
+.flip .front small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; margin-top: 6px; }
+.flip .back { display: none; font-size: .92rem; }
+.flip.flipped { background: var(--accent-soft); border-color: var(--accent); }
+.flip.flipped .front { display: none; } .flip.flipped .back { display: block; }
+
+.footer-nav { display: flex; justify-content: space-between; margin-top: 40px; font-size: .9rem; color: var(--muted); }
+
+/* emphasised term inside injected text (quiz feedback) where popovers aren't bound */
+.term-inline { font-weight: 600; }
+
+/* horizontal process flow: .flow > .flow-step[style="--c:..."] > b + span */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 1.2em 0; counter-reset: f; }
+.flow-step { background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--c, var(--accent)); border-radius: var(--radius); padding: 12px 14px; font-size: .92rem; }
+.flow-step b { display: block; color: var(--c, var(--accent)); }
+.flow-step span { color: var(--muted); }
+
+
+body{font-size:16px}.layout{max-width:1100px;grid-template-columns:215px minmax(0,1fr);gap:36px}main{padding-bottom:60px}.hero .lede{font-size:1.05rem}.sidebar .lec{margin-bottom:16px}.sidebar .note{font-size:.75rem;color:var(--muted);margin:12px 0}.lesson{scroll-margin-top:16px}.read-check{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin:22px 0 14px}.read-check input{accent-color:var(--good);width:17px;height:17px}.flow-step b{font-size:.9rem}.flow-step span{font-size:.9rem}.citation{font-size:.8rem;text-decoration:none;white-space:nowrap}.source-details{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:10px 0;background:var(--surface)}.source-details summary{cursor:pointer;font-weight:650;line-height:1.5}.source-details summary small{display:block;color:var(--muted);font-weight:400}.source-details p{font-size:.92rem}.source-details .badge{font-size:.73rem;display:inline-block;padding:2px 7px;border-radius:5px;background:var(--surface-2);margin-right:6px}.mini-bars{margin:15px 0}.bar-row{display:grid;grid-template-columns:48px 1fr 55px;gap:12px;margin:10px 0;align-items:center;font-size:.9rem}.track{height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden}.track div{height:100%;background:var(--accent)}input[type=range]{accent-color:var(--accent);width:100%;margin-top:8px}.subtle{font-size:.85rem;color:var(--muted)}.map-root{text-align:center;border:1px solid var(--border);border-radius:8px;padding:13px;background:var(--accent-soft);font-weight:650}.map-branches{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;position:relative}.map-branches:before{content:'';position:absolute;left:25%;right:25%;top:-12px;height:10px;border-left:1px solid var(--border);border-right:1px solid var(--border);border-top:1px solid var(--border)}.map-column .heading{font-size:.85rem;font-weight:650;margin-bottom:9px;text-align:center}.map-node{display:block;width:100%;text-align:left;margin:8px 0;padding:12px;border:1px solid var(--border);border-left:4px solid var(--warn);border-radius:8px;background:var(--bg);font:inherit;font-size:.86rem;color:var(--text);cursor:pointer}.map-column.positive .map-node{border-left-color:var(--good)}.map-node[aria-pressed=true]{background:var(--accent-soft);outline:1px solid var(--accent)}.map-node small{display:block;color:var(--muted)}#map-explain{min-height:105px;margin-top:18px}.quiz .why{display:block}.quiz .why[hidden]{display:none}.quiz .quiz-actions{margin-top:12px}.quiz .q{font-size:1rem}.quiz .opt{font-size:.9rem}.quiz details{font-size:.85rem}.quiz details summary{cursor:pointer;color:var(--muted)}.score{font-size:.82rem;padding:10px 0;color:var(--muted)}.toc a{font-size:.85rem}.toc a.active{color:var(--accent)}.glossary-list{font-size:.9rem}.glossary-list dd{margin-bottom:10px}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.skip{position:fixed;top:-80px;left:15px;padding:8px;background:var(--surface);z-index:90}.skip:focus{top:10px}#reset-note{min-height:1.5em;font-size:.75rem;color:var(--muted)}[hidden]{display:none!important}@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{inset:0 25% 0 0}.hero{padding-top:0}main{padding-top:25px}}@media(max-width:520px){.map-branches{gap:10px}.map-node{padding:9px;font-size:.8rem}.widget{padding:16px}.quiz{padding:16px}.sidebar{right:16%}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}@media print{.sidebar,.menu-btn,.read-check,.side-tools,.quiz-actions{display:none}.layout{display:block;max-width:none}body{background:white;color:black}.widget,.quiz,.source-details{break-inside:avoid}.source-details>*{display:block}main{padding:0}.lesson{padding:20px 0!important}}
+</style></head><body>
+<a class="skip" href="#main">Skip to lesson</a>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Lesson navigation"><div class="course">Interactive study guide</div><div class="lec">The Chinese Room</div><div class="progress"><div class="bar" role="progressbar" aria-label="Sections reviewed" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="progress-bar"><div class="fill" id="progress-fill"></div></div><div class="label" id="progress-label">0/6 sections reviewed</div></div><ol class="toc" id="toc"></ol><div class="score" id="score" aria-live="polite"></div><div class="side-tools"><button class="btn" id="theme">Light / dark</button><button class="btn" id="reset">Reset progress</button><button class="btn" id="download">Download HTML</button></div><p class="note">Your reading progress and first quiz attempts are saved in this browser when storage is available.</p><div id="reset-note" role="status"></div></nav>
+<main id="main"><header class="hero"><div class="kicker">Philosophy of mind · Interactive overview</div><h1>The Chinese Room: words, patterns, and understanding</h1><p class="lede">A straightforward guide to the argument, its main replies, and what language-model research adds. Read the explanations, try the examples, and answer eight short checks.</p></header>
+<div class="tldr" style="margin-top:24px"><b>The guide in four points</b><ol><li>A convincing answer and an understanding of that answer are different claims.</li><li>Frequency describes patterns; semantics concerns meaning and reference.</li><li>The debate includes both philosophical arguments and empirical evidence.</li><li>Understanding, reliability, and consciousness should be evaluated separately.</li></ol></div>
+<section class="lesson" id="argument" data-title="The argument"><div class="sec-head"><h2>1. The Chinese Room argument</h2><span class="slide-ref">Searle · 1980</span></div><p class="goal">Goal: explain why correct output does not settle the question.</p><p>Imagine a person who knows no Chinese inside a room. They use English instructions to manipulate Chinese characters and send back appropriate responses. An outside observer sees a fluent exchange. The operator still cannot read Chinese. <a class="citation" href="#ref-1">[1]</a></p>
+<div class="flow"><div class="flow-step"><b>1. Input</b><span>A Chinese question arrives.</span></div><div class="flow-step" style="--c:var(--s2)"><b>2. Rules</b><span>The operator matches and rearranges symbols.</span></div><div class="flow-step" style="--c:var(--s3)"><b>3. Output</b><span>A suitable Chinese answer is returned.</span></div></div>
+<div class="callout"><span class="t">Searle’s conclusion</span><p>Following formal rules—syntax—is not by itself sufficient for semantic understanding. This challenges the claim that the right program alone guarantees a mind.</p></div><p>The disputed step is whether the operator’s lack of understanding shows that the <b>entire system</b> lacks it. Searle’s argument does not rule out every possible artificial mind with appropriate causal powers.</p><details class="reveal"><summary>Think first: who might understand?</summary><p>The operator? The whole system? Neither? The systems reply puts the second option on the table. The experiment motivates a disagreement rather than an agreed verdict.</p></details>
+<div class="quiz" id="quiz-0" aria-label="Knowledge check 1"></div><label class="read-check"><input type="checkbox" data-read="argument"> I’ve reviewed this section</label></section>
+<section class="lesson" id="language" data-title="Frequency and meaning"><h2>2. Linguistic frequency and semantic understanding</h2><p class="goal">Goal: distinguish prediction, inference, and reference.</p><p><b>Linguistic frequency</b> means how often words or sequences occur. A count-based predictor can estimate which word usually follows a context.</p>
+<div class="widget"><p class="w-title">Try it · change a frequency</p><p class="hint">A toy corpus contains “pet is a dog” some number of times and “pet is a cat” twice. Move the slider to change the dog count.</p><label for="dog-count">Dog occurrences: <b><output id="dog-value">8</output></b></label><input id="dog-count" type="range" min="0" max="18" value="8"><div class="mini-bars" id="frequency-bars" aria-live="polite"></div><div class="formula" id="frequency-formula"></div><p class="subtle">Invented examples; raw counts with no smoothing. This is a teaching model, not an actual LLM.</p></div>
+<p><b>Semantic understanding</b> concerns meaning. Two useful distinctions are:</p><div class="grid"><div class="card"><h4>Inferential semantics</h4><p>Understanding relationships between claims. “A robin is a bird” and “birds are animals” support “a robin is an animal.”</p></div><div class="card"><h4>Referential semantics</h4><p>Connecting language to what it is about. “That robin” refers to a particular bird, not merely a common word sequence.</p></div></div><p>A likely sentence can be false. A rare sentence can be true. Probability, truth, and meaning are related questions, but they are not interchangeable.</p>
+<div class="callout warn"><span class="t">Do LLMs just count words?</span><p>Modern LLMs learn parameters and contextual representations. Next-token prediction is a training objective; it does not fully describe the internal mechanisms used to achieve it. Whether those mechanisms support understanding is part of the debate. <a class="citation" href="#ref-6">[6]</a></p></div>
+<div class="quiz" id="quiz-1" aria-label="Knowledge check 2"></div><div class="quiz" id="quiz-2" aria-label="Knowledge check 3"></div><label class="read-check"><input type="checkbox" data-read="language"> I’ve reviewed this section</label></section>
+<section class="lesson" id="replies" data-title="Replies and objections"><h2>3. Replies to the argument</h2><p class="goal">Goal: identify the assumption each reply challenges.</p><div class="table-wrap"><table><thead><tr><th>Reply</th><th>Main idea</th><th>Searle’s response</th></tr></thead><tbody><tr><td><b>Systems reply</b></td><td>The organized whole could understand even if one component does not.</td><td>Internalizing the whole arrangement still leaves him without Chinese understanding.</td></tr><tr><td><b>Robot reply</b></td><td>Perception and action could connect symbols to the world.</td><td>Extra inputs and outputs still leave the operator manipulating uninterpreted symbols.</td></tr></tbody></table></div><p class="subtle">These are simplified versions of replies discussed in the original paper. <a class="citation" href="#ref-1">[1]</a></p><div class="callout plain"><span class="t">Why the replies matter</span><p>The systems reply changes the <b>unit of analysis</b>. The robot reply changes the <b>relationship to the environment</b>. They challenge different steps, so they need not stand or fall together.</p></div><div class="quiz" id="quiz-3" aria-label="Knowledge check 4"></div><label class="read-check"><input type="checkbox" data-read="replies"> I’ve reviewed this section</label></section>
+<section class="lesson" id="sources" data-title="What the sources say"><h2>4. What the sources say</h2><p class="goal">Goal: compare claims without treating every paper as a direct proof or refutation.</p><p>Expand a source for its claim and limits. “Skeptical” and “positive” describe their roles in this guide; they do not make all authors agree on the same definition of understanding.</p>
+<details class="source-details" id="ref-1"><summary><span class="badge">Skeptical</span>[1] Minds, brains, and programs<small>John R. Searle · 1980</small></summary><p><b>Claim:</b> A program’s formal operations alone are insufficient for understanding.</p><p>The Chinese Room separates appropriate responses from an operator’s grasp of their meaning.</p><p><b>Limit / nuance:</b> The component-to-system inference is contested; this is a philosophical argument, not an LLM benchmark.</p><p><a href="https://home.csulb.edu/~cwallis/382/readings/482/searle.minds.brains.programs.bbs.1980.pdf" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details><details class="source-details" id="ref-2"><summary><span class="badge">Skeptical</span>[2] Climbing towards NLU: On Meaning, Form, and Understanding in the Age of Data<small>Emily M. Bender and Alexander Koller · 2020</small></summary><p><b>Claim:</b> Training on form alone does not establish meaning.</p><p>The authors argue that successful language-task performance should be distinguished from learning meaning.</p><p><b>Limit / nuance:</b> The argument uses a particular account of meaning; later authors dispute whether text can indirectly ground reference.</p><p><a href="https://aclanthology.org/2020.acl-main.463/" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details><details class="source-details" id="ref-3"><summary><span class="badge">Positive</span>[3] A Chinese Room That Understands<small>Herbert A. Simon and Stuart A. Eisenstadt · 2000 manuscript</small></summary><p><b>Claim:</b> Computer understanding can be supported by empirical evidence.</p><p>They add world access through “windows” and inspect how programs connect words with denotations. EPAM, ZBIE, and CaMeRa illustrate discrimination, scene-language learning, and diagram reasoning.</p><p><b>Limit / nuance:</b> They defend empirical Strong AI, distinguish it from logical necessity, and say their position need not conflict with Searle’s rejection of the latter. The examples are narrow symbolic programs, not modern LLMs.</p><p><a href="https://iiif.library.cmu.edu/file/Simon_box00021_fld01492_bdl0001_doc0001/Simon_box00021_fld01492_bdl0001_doc0001.pdf" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details><details class="source-details" id="ref-4"><summary><span class="badge">Empirical limitation</span>[4] The Reversal Curse: LLMs trained on “A is B” fail to learn “B is A”<small>Lukas Berglund et al. · 2023; revised 2024</small></summary><p><b>Claim:</b> Training in one direction did not automatically generalize to the reverse.</p><p>Controlled fine-tuning experiments with GPT-3 and Llama-1 revealed failures on invented facts. The paper also reports directional asymmetries in celebrity relations.</p><p><b>Limit / nuance:</b> This is evidence about studied models and setups, not proof that all LLMs lack semantics. In-context reversal is a separate condition.</p><p><a href="https://arxiv.org/abs/2309.12288" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details><details class="source-details" id="ref-5"><summary><span class="badge">Positive</span>[5] Do Language Models Have Semantics? On the Five Standard Positions<small>Anders Søgaard · ACL 2025</small></summary><p><b>Claim:</b> LLMs and chatbots can have inferential and referential semantics.</p><p>After comparing five positions, Søgaard proposes a sixth: reference can have both internal grounds, such as world models, and external grounds, such as communicative chains.</p><p><b>Limit / nuance:</b> This supports a semantic theory; it is not a demonstration of consciousness.</p><p><a href="https://aclanthology.org/2025.acl-long.1258/" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details><details class="source-details" id="ref-6"><summary><span class="badge">Positive</span>[6] Mechanistic indicators of understanding in large language models<small>Pierre Beckmann and Matthieu Queloz · Philosophical Studies 2026</small></summary><p><b>Claim:</b> Different mechanisms can support different kinds of understanding.</p><p>The framework distinguishes conceptual understanding through features, state-of-the-world understanding through factual connections and tracking, and principled understanding through compact circuits.</p><p><b>Limit / nuance:</b> Richer mechanisms may coexist with shallow heuristics. The argument depends on a theory of understanding and partial interpretability evidence, rather than uniform human-like competence.</p><p><a href="https://link.springer.com/article/10.1007/s11098-026-02513-1" target="_blank" rel="noopener noreferrer">Read the original paper ↗</a></p></details>
+<div class="widget"><p class="w-title">Think first · the Reversal Curse</p><p>Suppose a model’s training includes only “Mira invented the Luma lamp.” Why might asking “Who invented the Luma lamp?” be a different test?</p><details class="reveal"><summary>Reveal the explanation</summary><p>The prompt asks for retrieval in the reverse direction. Berglund et al. report that training on one direction did not automatically teach the reverse in their tested setups. Supplying the fact in the current prompt is a different condition: the paper notes that in-context reversal can succeed. <a class="citation" href="#ref-4">[4]</a></p></details><p class="subtle">The names here are invented. This is an illustration, not a live model test. Also, “A is B” should not be read as making every relation symmetric: “Mira invented X” reverses to “X was invented by Mira,” not “X invented Mira.”</p></div><div class="quiz" id="quiz-4" aria-label="Knowledge check 5"></div><div class="quiz" id="quiz-5" aria-label="Knowledge check 6"></div><label class="read-check"><input type="checkbox" data-read="sources"> I’ve reviewed this section</label></section>
+<section class="lesson" id="connections" data-title="Concept map"><h2>5. How the arguments connect</h2><p class="goal">Goal: see which question each argument or test addresses.</p><div class="widget"><p class="w-title">Concept map · select a box</p><div class="map-root">Does the system understand meaning?</div><div class="map-branches"><div class="map-column"><div class="heading">Reasons for skepticism</div><button class="map-node" data-map="room" aria-pressed="false"><b>Chinese Room</b><small>Is formal processing sufficient?</small></button><button class="map-node" data-map="form" aria-pressed="false"><b>Form vs meaning</b><small>Can form-only training learn meaning?</small></button><button class="map-node" data-map="reversal" aria-pressed="false"><b>Reversal Curse</b><small>Does learned knowledge transfer?</small></button></div><div class="map-column positive"><div class="heading">Positive accounts</div><button class="map-node" data-map="grounding" aria-pressed="false"><b>Grounding</b><small>How do words connect to things?</small></button><button class="map-node" data-map="semantics" aria-pressed="false"><b>Hybrid semantics</b><small>Can internal and external grounds combine?</small></button><button class="map-node" data-map="mechanisms" aria-pressed="false"><b>Internal mechanisms</b><small>What organization produces the answer?</small></button></div></div><div class="callout" id="map-explain" aria-live="polite"><span class="t">One debate, different tests</span><p>Select a box to see its connection to linguistic frequency, semantics, or understanding.</p></div><p class="subtle">This map groups conceptual relationships. It does not mean every author directly responded to every other author.</p></div><label class="read-check"><input type="checkbox" data-read="connections"> I’ve reviewed this section</label></section>
+<section class="lesson" id="review" data-title="Review and glossary"><h2>6. Review</h2><p>A useful synthesis is conditional: fluency alone is not decisive, while generalization, grounding, and internal structure may support particular kinds of understanding.</p><details class="reveal"><summary>Reveal a short comparison paragraph</summary><p>The Chinese Room asks whether formal computation alone is sufficient for understanding. The Reversal Curse provides evidence of a particular generalization failure. Simon and Eisenstadt defend empirical tests of grounded understanding; Søgaard argues for a hybrid semantic theory; Beckmann and Queloz connect kinds of understanding to internal mechanisms. These approaches use different criteria, so no single result resolves every version of the question.</p></details><div class="quiz" id="quiz-6" aria-label="Knowledge check 7"></div><div class="quiz" id="quiz-7" aria-label="Knowledge check 8"></div><h3>Quick glossary</h3><dl class="glossary-list"><dt>Syntax</dt><dd>Formal rules and arrangements of symbols.</dd><dt>Linguistic frequency</dt><dd>How often linguistic forms occur, alone or together.</dd><dt>Inferential semantics</dt><dd>Meaning considered through relations and implications among claims.</dd><dt>Referential semantics</dt><dd>Meaning considered through what expressions are about.</dd><dt>Grounding</dt><dd>The connection between representations and their referents; proposed routes can be direct or mediated.</dd><dt>Mechanistic interpretability</dt><dd>Studying the internal computations responsible for a model’s behavior.</dd><dt>Consciousness</dt><dd>Subjective experience; semantic competence alone does not establish it.</dd></dl><label class="read-check"><input type="checkbox" data-read="review"> I’ve reviewed this section</label><p class="subtle">Source summaries are paraphrases; examples and the map are educational interpretations. This page works offline except for links to papers.</p></section>
+<footer class="footer-nav"><a href="#argument">↑ Back to the argument</a><span>Chinese Room · Study guide</span></footer>
+</main></div><button class="btn primary menu-btn" id="menu" aria-controls="sidebar" aria-expanded="false">Contents</button>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),KEY='chinese-room-study-v1';
+const sections=Array.from(document.querySelectorAll('section.lesson'));
+const sectionIds=sections.map(s=>s.id);
+const questions=[{"section": "argument", "prompt": "What is Searle’s central claim in the Chinese Room argument?", "options": ["Fluent output always shows understanding.", "Formal rule-following alone is insufficient for understanding.", "Artificial systems must never use symbols.", "A slow system cannot understand language."], "correct": 1, "feedback": ["The argument asks whether fluent output can occur without understanding.", "Searle challenges the sufficiency of formal processing, even when the answers look appropriate.", "The target is sufficiency, not a ban on using symbols.", "Processing speed is not the central issue."], "hint": "Separate what the observer sees from what the operator understands."}, {"section": "language", "prompt": "A toy corpus has 8 occurrences of “pet is a dog” and 2 of “pet is a cat.” What is P(dog | pet is a) using raw relative frequency?", "options": ["20%", "50%", "80%", "100%"], "correct": 2, "feedback": ["2/10 = 20% is the frequency of cat.", "The two continuations do not occur equally often.", "8/(8 + 2) = 0.8, or 80%.", "Cat occurs too, so the dog probability is below 100%."], "hint": "Divide the dog count by the total count of continuations."}, {"section": "language", "prompt": "Which test most directly concerns referential semantics?", "options": ["Counting how often “bird” occurs.", "Checking whether a sentence is grammatical.", "Tracking which actual bird “that bird” refers to.", "Measuring the speed of token generation."], "correct": 2, "feedback": ["Counting occurrences concerns linguistic frequency.", "Grammatical structure concerns syntax.", "Reference concerns the connection between an expression and what it is about.", "Generation speed does not test aboutness."], "hint": "Look for a word–world connection."}, {"section": "replies", "prompt": "What does the systems reply challenge?", "options": ["The step from the operator’s ignorance to the whole system’s ignorance.", "The claim that any operator can follow a rulebook.", "The claim that the observer knows Chinese.", "The possibility of producing a correct answer."], "correct": 0, "feedback": ["The reply suggests understanding could belong to the organized whole, although one component lacks it.", "Following rules is part of the assumed setup.", "The observer’s language knowledge is not the disputed step.", "The experiment assumes suitable answers; the dispute is what they establish."], "hint": "Compare a component with the organization containing it."}, {"section": "sources", "prompt": "What do Simon and Eisenstadt distinguish in their paper?", "options": ["Linguistic frequency from grammatical correctness.", "Empirical computer understanding from a logical necessity claim.", "Fast language models from slow language models.", "Text generation from image generation."], "correct": 1, "feedback": ["Their key distinction is about empirical evidence versus logical necessity.", "They defend empirical Strong AI and distinguish it from the stronger necessity thesis targeted by Searle.", "Speed is not their central distinction.", "The paper’s central distinction is not between output modalities."], "hint": "Ask whether understanding is supported by observation or guaranteed by a premise."}, {"section": "sources", "prompt": "Which conclusion stays within the scope of the Reversal Curse paper?", "options": ["All possible AI systems lack meaning.", "LLMs can never reverse a fact in a prompt.", "The tested training setups showed a failure of reverse generalization.", "Every factual relationship is symmetric."], "correct": 2, "feedback": ["A model-specific behavioral result does not settle all possible systems.", "The paper explicitly distinguishes training failures from in-context reversal.", "The reported asymmetry constrains generalization in the studied models and setups.", "Many relationships are directional; reversing a relation changes how it is expressed."], "hint": "Keep the conclusion tied to the models and training conditions studied."}, {"section": "review", "prompt": "Which description best matches Søgaard’s proposed position?", "options": ["LLMs have syntax but no semantics.", "Only human-feedback chatbots can have reference.", "Semantics requires a biological brain.", "LLMs can have semantics grounded internally and externally."], "correct": 3, "feedback": ["Syntax-only is one of the positions the paper compares, not its proposed conclusion.", "The proposal includes LLMs as well as chatbots.", "The paper does not make biological implementation a requirement.", "The hybrid proposal combines inferential and referential semantics with internal and external grounds."], "hint": "The proposal combines two routes to grounding."}, {"section": "review", "prompt": "Which description best matches Beckmann and Queloz’s framework?", "options": ["Understanding varies with concepts, world-state tracking, and principles.", "Correct answers are the only evidence that matters.", "All internal features prove human-like consciousness.", "Memorization and richer mechanisms cannot coexist."], "correct": 0, "feedback": ["Their tiered framework connects varieties of understanding to different internal organizations.", "The paper focuses on mechanisms as well as behavior.", "A representation does not by itself establish conscious experience.", "Their framework explicitly allows heterogeneous mechanisms to coexist."], "hint": "Look for a graded account based on internal organization."}];
+function cleanState(raw){const out={read:{},answers:{}};if(!raw||typeof raw!=='object')return out;for(const id of sectionIds)if(raw.read?.[id]===true)out.read[id]=true;questions.forEach((q,i)=>{const a=raw.answers?.[i];if(!a||typeof a.firstCorrect!=='boolean')return;if(a.selection===null||(Number.isInteger(a.selection)&&a.selection>=0&&a.selection<q.options.length))out.answers[i]={selection:a.selection,firstCorrect:a.firstCorrect};});return out;}
+let state=cleanState(null);try{state=cleanState(JSON.parse(localStorage.getItem(KEY)));const t=localStorage.getItem(KEY+'-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch{}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}}
+function recordAnswer(i,j){if(!questions[i]||!Number.isInteger(j)||j<0||j>=questions[i].options.length)return;const old=state.answers[i];if(old&&old.selection!==null)return;state.answers[i]={selection:j,firstCorrect:old?.firstCorrect??(j===questions[i].correct)};save();}
+function retryAnswer(i){if(state.answers[i])state.answers[i].selection=null;save();}
+function progress(){const read=sectionIds.filter(id=>state.read[id]).length,answered=Object.values(state.answers),correct=answered.filter(a=>a.firstCorrect).length;return {read,answered:answered.length,correct};}
+function renderProgress(){const p=progress();$('progress-fill').style.width=(p.read/6*100)+'%';$('progress-bar').setAttribute('aria-valuenow',p.read);$('progress-label').textContent=`${p.read}/6 sections reviewed`;$('score').textContent=`Quiz: ${p.answered}/8 attempted · ${p.correct}/${p.answered} correct on first try`;document.querySelectorAll('[data-read]').forEach(b=>b.checked=!!state.read[b.dataset.read]);document.querySelectorAll('[data-tick]').forEach(b=>b.textContent=state.read[b.dataset.tick]?'✓':'');}
+$('toc').innerHTML=sections.map((s,i)=>`<li><a href="#${s.id}"><span class="tick" data-tick="${s.id}"></span><span>${i+1}. ${s.dataset.title}</span></a></li>`).join('');
+document.querySelectorAll('[data-read]').forEach(b=>b.addEventListener('change',()=>{state.read[b.dataset.read]=b.checked;save();renderProgress();}));
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function renderQuiz(i){const q=questions[i],a=state.answers[i],selected=a?.selection,answered=Number.isInteger(selected);$('quiz-'+i).innerHTML=`<div class="q-label">Check ${i+1} of 8</div><p class="q" id="question-${i}">${q.prompt}</p><div class="opts" role="group" aria-labelledby="question-${i}">${q.options.map((opt,j)=>`<button class="opt ${answered&&j===q.correct?'right':''} ${answered&&j===selected&&j!==q.correct?'wrong':''}" data-answer="${i}" data-option="${j}" ${answered?'disabled':''}>${String.fromCharCode(65+j)}. ${escapeHTML(opt)}${answered&&j===q.correct?' ✓ (correct answer)':''}${answered&&j===selected&&j!==q.correct?' ✗ (your answer)':''}</button>`).join('')}</div><div class="why" id="feedback-${i}" tabindex="-1" aria-live="polite" ${answered?'':'hidden'}>${answered?'<b>'+(selected===q.correct?'Correct. ':'Not quite. ')+'</b>'+escapeHTML(q.feedback[selected])+(selected!==q.correct?' '+escapeHTML(q.feedback[q.correct]):''):''}</div><div class="quiz-actions"><button class="btn retry" data-retry="${i}" ${answered?'':'hidden'}>Try again</button></div><details><summary>Hint</summary><p>${escapeHTML(q.hint)}</p></details>`;}
+questions.forEach((_,i)=>renderQuiz(i));renderProgress();
+document.addEventListener('click',e=>{const answer=e.target.closest('[data-answer]'),retry=e.target.closest('[data-retry]');if(answer){const i=Number(answer.dataset.answer);recordAnswer(i,Number(answer.dataset.option));renderQuiz(i);$('feedback-'+i).focus({preventScroll:true});renderProgress();}if(retry){const i=Number(retry.dataset.retry);retryAnswer(i);renderQuiz(i);$('quiz-'+i).querySelector('.opt').focus();renderProgress();}});
+function frequency(n){return {dog:n/(n+2),cat:2/(n+2)};}
+function renderFrequency(){const n=Number($('dog-count').value),p=frequency(n);$('dog-value').textContent=n;$('frequency-bars').innerHTML=['dog','cat'].map(w=>`<div class="bar-row"><b>${w}</b><div class="track" aria-hidden="true"><div style="width:${p[w]*100}%"></div></div><span>${Math.round(p[w]*100)}%</span></div>`).join('');$('frequency-formula').textContent=`P(dog | pet is a) = ${n} / (${n} + 2) = ${(p.dog*100).toFixed(1)}%`;}
+$('dog-count').addEventListener('input',renderFrequency);renderFrequency();
+const map={room:['Chinese Room → syntax and sufficiency','The question is whether formal processing alone is sufficient, even when it produces convincing output. The systems reply challenges which unit should be judged.','ref-1'],form:['Form vs meaning → the learning signal','Frequency and co-occurrence describe linguistic forms. Bender and Koller argue that success with form-only training does not establish meaning. This conclusion is contested by positive semantic accounts.','ref-2'],reversal:['Reversal Curse → flexible use of knowledge','The paper tests whether an association learned in training can be used in reverse. Failure constrains generalization in the tested setups; it does not settle every definition of understanding.','ref-4'],grounding:['Grounding → words and the world','Simon and Eisenstadt connect symbols to denotations and examine internal representations. Their empirical argument asks what a computer can learn and demonstrate, rather than what a program logically guarantees.','ref-3'],semantics:['Hybrid semantics → inference and reference','Søgaard argues for both inferential and referential semantics, with grounding in internal representations and external communicative connections. This challenges a blanket syntax-only account.','ref-5'],mechanisms:['Internal mechanisms → how an answer is produced','Beckmann and Queloz examine concepts, world-state tracking, and principles. A simple prediction objective can produce different mechanisms, so counting frequency is not a complete explanation of an LLM.','ref-6']};
+document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>{const m=map[b.dataset.map];document.querySelectorAll('[data-map]').forEach(n=>n.setAttribute('aria-pressed',String(n===b)));$('map-explain').innerHTML=`<span class="t">${m[0]}</span><p>${m[1]}</p><a class="citation" href="#${m[2]}">Read the related source ↑</a>`;}));
+function revealReference(){if(/^#ref-[1-6]$/.test(location.hash))$(location.hash.slice(1)).open=true;}
+window.addEventListener('hashchange',revealReference);revealReference();
+function closeMenu(){$('sidebar').classList.remove('open');$('menu').setAttribute('aria-expanded','false');}
+$('menu').addEventListener('click',()=>{const opened=$('sidebar').classList.toggle('open');$('menu').setAttribute('aria-expanded',String(opened));});$('toc').addEventListener('click',e=>{if(e.target.closest('a'))closeMenu();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+$('theme').addEventListener('click',()=>{const explicit=document.documentElement.dataset.theme,dark=explicit?explicit==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=dark?'light':'dark';try{localStorage.setItem(KEY+'-theme',document.documentElement.dataset.theme);}catch{}});
+$('reset').addEventListener('click',()=>{state=cleanState(null);save();questions.forEach((_,i)=>renderQuiz(i));renderProgress();$('reset-note').textContent='Reading progress and quiz attempts reset.';});
+if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)document.querySelectorAll('.toc a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));});},{rootMargin:'-10% 0px -70% 0px'});sections.forEach(s=>observer.observe(s));}
+$('download').addEventListener('click',()=>{const blob=new Blob(['<!doctype html>\n'+document.documentElement.outerHTML],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='chinese-room-study-guide.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+</script></body></html>
